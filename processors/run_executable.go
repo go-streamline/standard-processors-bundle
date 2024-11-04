@@ -1,4 +1,4 @@
-package tprocessors
+package processors
 
 import (
 	"fmt"
