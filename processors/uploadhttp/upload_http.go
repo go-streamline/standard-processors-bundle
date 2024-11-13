@@ -40,7 +40,7 @@ type bas64FormatTemplate struct {
 	Base64Contents string
 }
 
-func CreateUploadHTTP() definitions.Processor {
+func NewUploadHTTP() definitions.Processor {
 	return &UploadHTTP{
 		client: utils.NewHTTPClient(),
 	}

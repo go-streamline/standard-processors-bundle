@@ -3,6 +3,7 @@ package io
 import (
 	"github.com/go-streamline/interfaces/definitions"
 	"github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -25,8 +26,10 @@ func (r *ReadDir) GetScheduleType() definitions.ScheduleType {
 	return definitions.CronDriven
 }
 
-func NewReadDir() definitions.TriggerProcessor {
-	return &ReadDir{}
+func NewReadDir(stateManager definitions.StateManager) definitions.TriggerProcessor {
+	return &ReadDir{
+		stateManager: stateManager,
+	}
 }
 
 func (*ReadDir) HandleSessionUpdate(update definitions.SessionUpdate) {
@@ -48,14 +51,10 @@ func (r *ReadDir) Close() error {
 
 func (r *ReadDir) Execute(
 	info *definitions.EngineFlowObject,
-	fileHandler definitions.ProcessorFileHandler,
+	produceFileHandler func() definitions.ProcessorFileHandler,
 	log *logrus.Logger,
-) ([]*definitions.EngineFlowObject, error) {
+) ([]*definitions.TriggerProcessorResponse, error) {
 	log.Trace("handling ReadDir")
-	writer, err := fileHandler.Write()
-	if err != nil {
-		return nil, err
-	}
 
 	log.Debugf("evaluating expression %s", r.config.Input)
 	inputPath, err := info.EvaluateExpression(r.config.Input)
@@ -85,6 +84,7 @@ func (r *ReadDir) Execute(
 	}
 
 	newModifiedTime := lastModifiedTime
+	var responses []*definitions.TriggerProcessorResponse
 	for _, file := range files {
 		if file.ModTime().Unix() > newModifiedTime {
 			newModifiedTime = file.ModTime().Unix()
@@ -103,14 +103,32 @@ func (r *ReadDir) Execute(
 		filePath := filepath.Join(inputPath, file.Name())
 		log.Debugf("processing file: %s", filePath)
 
-		content, err := os.ReadFile(filePath)
+		fileHandler := produceFileHandler()
+		writer, err := fileHandler.Write()
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = writer.Write(content)
+		file, err := os.Open(filePath)
 		if err != nil {
 			return nil, err
+		}
+		defer file.Close()
+
+		buf := make([]byte, 4096)
+		for {
+			n, err := file.Read(buf)
+			if err != nil && err != io.EOF {
+				return nil, err
+			}
+			if n == 0 {
+				break
+			}
+
+			_, err = writer.Write(buf[:n])
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		if r.config.RemoveSource {
@@ -120,6 +138,11 @@ func (r *ReadDir) Execute(
 			}
 			log.Debugf("removed source file: %s", filePath)
 		}
+
+		responses = append(responses, &definitions.TriggerProcessorResponse{
+			EngineFlowObject: info,
+			FileHandler:      fileHandler,
+		})
 	}
 
 	m["last_modified_time"] = newModifiedTime
@@ -129,7 +152,7 @@ func (r *ReadDir) Execute(
 	}
 
 	log.Debug("completed ReadDir execution")
-	return nil, nil
+	return responses, nil
 }
 
 func (r *ReadDir) readFiles(inputPath string, lastModifiedTime int64) ([]os.FileInfo, error) {

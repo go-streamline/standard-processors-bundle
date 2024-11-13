@@ -17,6 +17,10 @@ type writeFileHandlerConfig struct {
 	Output string `mapstructure:"output"`
 }
 
+func NewWriteFile() definitions.Processor {
+	return &WriteFile{}
+}
+
 func (w *WriteFile) SetConfig(conf map[string]interface{}) error {
 	w.config = &writeFileHandlerConfig{}
 	return w.DecodeMap(conf, &w.config)
