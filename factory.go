@@ -3,14 +3,14 @@ package standard_processors_bundle
 import (
 	"fmt"
 	"github.com/go-streamline/interfaces/definitions"
+	"github.com/go-streamline/standard-processors-bundle/processors"
+	"github.com/go-streamline/standard-processors-bundle/processors/io"
+	"github.com/go-streamline/standard-processors-bundle/processors/pubsub"
+	"github.com/go-streamline/standard-processors-bundle/processors/uploadhttp"
+	tio "github.com/go-streamline/standard-processors-bundle/tprocessors/io"
+	tkafka "github.com/go-streamline/standard-processors-bundle/tprocessors/kafka"
+	tpubsub "github.com/go-streamline/standard-processors-bundle/tprocessors/pubsub"
 	"github.com/google/uuid"
-	"standard-processors-bundle/processors"
-	"standard-processors-bundle/processors/io"
-	"standard-processors-bundle/processors/pubsub"
-	"standard-processors-bundle/processors/uploadhttp"
-	tio "standard-processors-bundle/tprocessors/io"
-	tkafka "standard-processors-bundle/tprocessors/kafka"
-	tpubsub "standard-processors-bundle/tprocessors/pubsub"
 )
 
 var (

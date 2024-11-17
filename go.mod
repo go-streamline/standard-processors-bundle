@@ -1,4 +1,4 @@
-module standard-processors-bundle
+module github.com/go-streamline/standard-processors-bundle
 
 go 1.22
 
