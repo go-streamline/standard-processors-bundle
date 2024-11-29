@@ -151,7 +151,7 @@ func (c *ConsumeKafka) Execute(
 }
 
 func (c *ConsumeKafka) HandleSessionUpdate(update definitions.SessionUpdate) {
-	panic("implement me")
+
 }
 
 func (c *ConsumeKafka) Close() error {
