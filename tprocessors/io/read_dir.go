@@ -4,6 +4,7 @@ import (
 	"github.com/go-streamline/interfaces/definitions"
 	"github.com/sirupsen/logrus"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -49,6 +50,52 @@ func (r *ReadDir) Close() error {
 	return nil
 }
 
+func (r *ReadDir) listFiles(dir string, lastModifiedTime int64) ([]string, error) {
+	var files []string
+
+	// Define a walk function
+	walkFn := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip directories unless recursive is enabled
+		if info.IsDir() && path != dir {
+			if !r.config.Recursive {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		// Add file paths to the list
+		if !info.IsDir() && info.ModTime().Unix() > lastModifiedTime {
+			if r.config.RegexFilter != "" {
+				matched, err := regexp.MatchString(r.config.RegexFilter, info.Name())
+				if err != nil {
+					return err
+				}
+				if !matched {
+					return nil
+				}
+			}
+			absPath, err := filepath.Abs(path)
+			if err != nil {
+				return err
+			}
+			files = append(files, absPath)
+		}
+		return nil
+	}
+
+	// Walk through the directory
+	err := filepath.Walk(dir, walkFn)
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
 func (r *ReadDir) Execute(
 	info *definitions.EngineFlowObject,
 	produceFileHandler func() definitions.ProcessorFileHandler,
@@ -71,36 +118,25 @@ func (r *ReadDir) Execute(
 	var lastModifiedTime int64
 	_, ok := m["last_modified_time"]
 	if ok {
-		lastModifiedTime = m["last_modified_time"].(int64)
+		lastModifiedTime = int64(m["last_modified_time"].(float64))
 	} else {
 		lastModifiedTime = 0
 	}
 
 	log.Debugf("last modified time: %d", lastModifiedTime)
 
-	files, err := r.readFiles(inputPath, lastModifiedTime)
+	files, err := r.listFiles(inputPath, lastModifiedTime)
 	if err != nil {
 		return nil, err
 	}
 
 	newModifiedTime := lastModifiedTime
 	var responses []*definitions.TriggerProcessorResponse
-	for _, file := range files {
-		if file.ModTime().Unix() > newModifiedTime {
-			newModifiedTime = file.ModTime().Unix()
+	for _, filePath := range files {
+		currentEngineFile := &definitions.EngineFlowObject{
+			Metadata: maps.Clone(info.Metadata),
 		}
 
-		if r.config.RegexFilter != "" {
-			matched, err := regexp.MatchString(r.config.RegexFilter, file.Name())
-			if err != nil {
-				return nil, err
-			}
-			if !matched {
-				continue
-			}
-		}
-
-		filePath := filepath.Join(inputPath, file.Name())
 		log.Debugf("processing file: %s", filePath)
 
 		fileHandler := produceFileHandler()
@@ -138,9 +174,11 @@ func (r *ReadDir) Execute(
 			}
 			log.Debugf("removed source file: %s", filePath)
 		}
+		currentEngineFile.Metadata["ReadDir.InputPath"] = inputPath
+		currentEngineFile.Metadata["ReadDir.FilePath"] = filePath
 
 		responses = append(responses, &definitions.TriggerProcessorResponse{
-			EngineFlowObject: info,
+			EngineFlowObject: currentEngineFile,
 			FileHandler:      fileHandler,
 		})
 	}
@@ -153,24 +191,4 @@ func (r *ReadDir) Execute(
 
 	log.Debug("completed ReadDir execution")
 	return responses, nil
-}
-
-func (r *ReadDir) readFiles(inputPath string, lastModifiedTime int64) ([]os.FileInfo, error) {
-	var files []os.FileInfo
-	err := filepath.Walk(inputPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && info.ModTime().Unix() > lastModifiedTime {
-			files = append(files, info)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return files, nil
 }
