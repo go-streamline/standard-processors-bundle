@@ -9,13 +9,9 @@ import (
 
 type UpdateMetadata struct {
 	definitions.BaseProcessor
-	config       *updateMetadataConfig
+	config       *map[string]any
 	stateManager definitions.StateManager
 	exprOptions  []expr.Option
-}
-
-type updateMetadataConfig struct {
-	metadata map[string]interface{} `mapstructure:"metadata"`
 }
 
 func NewUpdateMetadata(stateManager definitions.StateManager) *UpdateMetadata {
@@ -49,7 +45,7 @@ func (p *UpdateMetadata) Name() string {
 }
 
 func (p *UpdateMetadata) SetConfig(config map[string]interface{}) error {
-	conf := &updateMetadataConfig{}
+	conf := &map[string]any{}
 	err := p.DecodeMap(config, conf)
 	if err != nil {
 		logrus.WithError(err).Errorf("failed to decode config")
@@ -67,7 +63,7 @@ func (p *UpdateMetadata) Execute(info *definitions.EngineFlowObject, fileHandler
 	log.Trace("starting UpdateMetadata execution")
 
 	var err error
-	for k, v := range p.config.metadata {
+	for k, v := range *p.config {
 		info.Metadata[k], err = info.EvaluateExpression(fmt.Sprintf("%v", v), p.exprOptions...)
 		if err != nil {
 			return nil, err
