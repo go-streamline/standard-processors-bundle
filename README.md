@@ -1,5 +1,41 @@
 # Standard Processors Bundle
-This bundle provides a basic set of processors & trigger processors to be used in go-streamline. 
+This bundle provides a basic set of processors & trigger processors to be used in go-streamline.
+
+<!-- TOC -->
+* [Standard Processors Bundle](#standard-processors-bundle)
+  * [Processors](#processors)
+    * [ReadFile](#readfile)
+      * [Configuration](#configuration)
+        * [Metadata](#metadata)
+    * [WriteFile](#writefile)
+      * [Configuration](#configuration-1)
+        * [Metadata](#metadata-1)
+    * [PublishKafka](#publishkafka)
+      * [Configuration](#configuration-2)
+        * [Metadata](#metadata-2)
+    * [PublishPubSub](#publishpubsub)
+      * [Configuration](#configuration-3)
+        * [Metadata](#metadata-3)
+    * [UploadHTTP](#uploadhttp)
+      * [Configuration](#configuration-4)
+        * [Metadata](#metadata-4)
+    * [RunExecutable](#runexecutable)
+      * [Configuration](#configuration-5)
+        * [Metadata](#metadata-5)
+    * [UpdateMetadata](#updatemetadata)
+      * [Configuration](#configuration-6)
+      * [Metadata](#metadata-6)
+    * [Trigger Processors](#trigger-processors)
+      * [ReadDir](#readdir)
+      * [Configuration](#configuration-7)
+        * [Metadata](#metadata-7)
+      * [ConsumeKafka](#consumekafka)
+      * [Configuration](#configuration-8)
+        * [Metadata](#metadata-8)
+      * [ConsumePubSub](#consumepubsub)
+      * [Configuration](#configuration-9)
+        * [Metadata](#metadata-9)
+<!-- TOC -->
 
 ## Processors
 
