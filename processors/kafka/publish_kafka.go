@@ -20,7 +20,7 @@ type PublishKafka struct {
 type publishKafkaConfig struct {
 	BootstrapServers string `mapstructure:"bootstrap_servers"` // comma separated list of brokers
 	Topic            string `mapstructure:"topic"`
-	Acks             string `mapstructure:"acks"` // all, none, or leader
+	Acks             string `mapstructure:"acks"` // all, none, or local
 }
 
 func NewPublishKafka() definitions.Processor {
@@ -49,7 +49,7 @@ func (p *PublishKafka) SetConfig(config map[string]interface{}) error {
 		producerConfig.Producer.RequiredAcks = sarama.WaitForAll
 	case "none":
 		producerConfig.Producer.RequiredAcks = sarama.NoResponse
-	case "leader":
+	case "local":
 		producerConfig.Producer.RequiredAcks = sarama.WaitForLocal
 	default:
 		return fmt.Errorf("invalid acks value: %s", p.config.Acks)
@@ -104,9 +104,9 @@ func (p *PublishKafka) Execute(info *definitions.EngineFlowObject, fileHandler d
 
 	return &definitions.EngineFlowObject{
 		Metadata: map[string]interface{}{
-			"topic":     p.config.Topic,
-			"partition": partition,
-			"offset":    offset,
+			"PublishKafka.Topic":     p.config.Topic,
+			"PublishKafka.Partition": partition,
+			"PublishKafka.Offset":    offset,
 		},
 	}, nil
 }
