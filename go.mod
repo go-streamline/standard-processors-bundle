@@ -5,7 +5,7 @@ go 1.22
 require (
 	cloud.google.com/go/pubsub v1.45.1
 	github.com/IBM/sarama v1.43.3
-	github.com/go-streamline/interfaces v0.1.6
+	github.com/go-streamline/interfaces v0.1.10
 	github.com/google/uuid v1.6.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
