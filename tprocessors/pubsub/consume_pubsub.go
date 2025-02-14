@@ -110,12 +110,18 @@ func (c *ConsumePubSub) Execute(info *definitions.EngineFlowObject, produceFileH
 		}
 
 		tpMark := uuid.New().String()
+		metadata := map[string]interface{}{
+			"ConsumePubSub.Topic":       c.config.Topic,
+			"ConsumePubSub.MessageID":   msg.ID,
+			"ConsumePubSub.PublishTime": msg.PublishTime,
+		}
+		// copy msg attributes to metadata
+		for k, v := range msg.Attributes {
+			metadata[fmt.Sprintf("ConsumePubSub.Attributes.%s", k)] = v
+		}
 		engineFlowObject := &definitions.EngineFlowObject{
-			Metadata: map[string]interface{}{
-				"message_id":   msg.ID,
-				"publish_time": msg.PublishTime,
-			},
-			TPMark: tpMark,
+			Metadata: metadata,
+			TPMark:   tpMark,
 		}
 
 		responses = append(responses, &definitions.TriggerProcessorResponse{
