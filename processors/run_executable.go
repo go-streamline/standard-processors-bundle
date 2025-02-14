@@ -57,5 +57,6 @@ func (r *RunExecutable) Execute(
 		log.WithError(err).Errorf("failed to run executable %s: %s", r.config.Executable, output)
 		return nil, fmt.Errorf("failed to run executable %s: %w. Output: %s", r.config.Executable, err, output)
 	}
+	info.Metadata["RunExecutable.Stdout"] = string(output)
 	return info, nil
 }
