@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-streamline/interfaces/definitions"
+	"github.com/go-streamline/interfaces/utils"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/option"
 	"io"
@@ -43,7 +44,12 @@ func (p *PublishPubSub) SetConfig(config map[string]interface{}) error {
 		return err
 	}
 	p.config = conf
-	client, err := pubsub.NewClient(p.ctx, p.config.Project, option.WithCredentialsJSON([]byte(p.config.Credentials)))
+	credentials, err := utils.EvaluateExpression(p.config.Credentials, nil)
+	if err != nil {
+		logrus.WithError(err).Errorf("failed to evaluate credentials")
+		return err
+	}
+	client, err := pubsub.NewClient(p.ctx, p.config.Project, option.WithCredentialsJSON([]byte(credentials)))
 	if err != nil {
 		logrus.WithError(err).Errorf("failed to create Pub/Sub client")
 		return err
@@ -109,7 +115,7 @@ func (p *PublishPubSub) Execute(info *definitions.EngineFlowObject, fileHandler 
 
 	return &definitions.EngineFlowObject{
 		Metadata: map[string]interface{}{
-			"topic": p.config.Topic,
+			"PublishPubSub.Topic": p.config.Topic,
 		},
 	}, nil
 }

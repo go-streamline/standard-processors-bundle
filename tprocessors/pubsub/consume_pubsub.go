@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-streamline/interfaces/definitions"
+	"github.com/go-streamline/interfaces/utils"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/option"
@@ -46,7 +47,12 @@ func (c *ConsumePubSub) SetConfig(config map[string]interface{}) error {
 		return err
 	}
 	c.config = conf
-	client, err := pubsub.NewClient(c.ctx, c.config.Project, option.WithCredentialsJSON([]byte(c.config.Credentials)))
+	credentials, err := utils.EvaluateExpression(c.config.Credentials, nil)
+	if err != nil {
+		logrus.WithError(err).Errorf("failed to evaluate credentials expression")
+		return err
+	}
+	client, err := pubsub.NewClient(c.ctx, c.config.Project, option.WithCredentialsJSON([]byte(credentials)))
 	if err != nil {
 		logrus.WithError(err).Errorf("failed to create Pub/Sub client")
 		return err
@@ -71,6 +77,7 @@ func (c *ConsumePubSub) SetConfig(config map[string]interface{}) error {
 		return fmt.Errorf("topic %s does not exist and create_topic is false", c.config.Topic)
 	}
 
+	c.subscription = c.client.Subscription(c.config.SubscriptionName)
 	return nil
 }
 
