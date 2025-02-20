@@ -25,14 +25,14 @@ This bundle provides a basic set of processors & trigger processors to be used i
     * [UpdateMetadata](#updatemetadata)
       * [Configuration](#configuration-6)
       * [Metadata](#metadata-6)
-    * [Trigger Processors](#trigger-processors)
-      * [ReadDir](#readdir)
+  * [Trigger Processors](#trigger-processors)
+    * [ReadDir](#readdir)
       * [Configuration](#configuration-7)
       * [Metadata](#metadata-7)
-      * [ConsumeKafka](#consumekafka)
+    * [ConsumeKafka](#consumekafka)
       * [Configuration](#configuration-8)
       * [Metadata](#metadata-8)
-      * [ConsumePubSub](#consumepubsub)
+    * [ConsumePubSub](#consumepubsub)
       * [Configuration](#configuration-9)
       * [Metadata](#metadata-9)
 <!-- TOC -->
@@ -129,9 +129,9 @@ Updates the metadata of the flow file. Its expr also supports 2 additional funct
 #### Metadata
 Each key-value pair in the `metadata` configuration will be added/override the flow file's metadata.
 
-### Trigger Processors
+## Trigger Processors
 
-#### ReadDir
+### ReadDir
 Reads a directory and emits a flow file for each file in the directory.
 It saves the latest modified time to state manager to avoid reprocessing the same files.
 
@@ -145,7 +145,7 @@ It saves the latest modified time to state manager to avoid reprocessing the sam
 - `ReadDir.InputPath` - the absolute path to the directory that was read.
 - `ReadDir.FilePath` - the absolute path to the file that was read.
 
-#### ConsumeKafka
+### ConsumeKafka
 Consumes messages from a Kafka topic and emits a flow file for each message.
 
 #### Configuration
@@ -161,7 +161,7 @@ Consumes messages from a Kafka topic and emits a flow file for each message.
 - `ConsumeKafka.Offset` - the Kafka offset that was consumed from.
 
 
-#### ConsumePubSub
+### ConsumePubSub
 Consumes messages from a Google Cloud Pub/Sub topic and emits a flow file for each message.
 
 #### Configuration
